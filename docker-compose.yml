@@ -18,6 +18,7 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons  # This links your local code to the container
+      - ./odoo.conf:/etc/odoo/odoo.conf  # Mount custom configuration
     environment:
       - DB_HOST=db
       - DB_USER=odoo
