@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_nexus_product,access_nexus_product,model_nexus_product,,1,1,1,1
+access_nexus_receipt,access_nexus_receipt,model_nexus_receipt,,1,1,1,1
+access_nexus_delivery,access_nexus_delivery,model_nexus_delivery,,1,1,1,1
