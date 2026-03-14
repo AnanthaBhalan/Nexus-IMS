@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8069';
+const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:8069/api';
 
 /**
  * Generic fetch wrapper with error handling
@@ -131,17 +131,9 @@ export async function createReceipt(receiptData) {
  */
 export async function healthCheck() {
   try {
-    console.log("Testing connection to:", API_BASE_URL);
-    const response = await fetch(`${API_BASE_URL}/health`);
-    if (response.ok) {
-      console.log("✅ Backend health check passed");
-      return true;
-    } else {
-      console.log("⚠️ Backend responded with:", response.status);
-      return false;
-    }
+    const response = await fetch(`${API_BASE_URL}/products`);
+    return response.ok;
   } catch (error) {
-    console.log("❌ Backend health check failed:", error.message);
     return false;
   }
 }

@@ -16,14 +16,13 @@ const Dashboard = () => {
         setError(null);
         
         // Test connectivity first
-        console.log("🔍 Testing backend connectivity...");
         const isHealthy = await healthCheck();
         
         if (isHealthy) {
-          console.log("✅ Backend is healthy, loading data...");
+          console.log("✅ API is reachable, loading data...");
           setKpis(await getDashboard());
         } else {
-          console.log("⚠️ Backend health check failed, attempting data load anyway...");
+          console.log("⚠️ API unreachable, attempting data load anyway...");
           setKpis(await getDashboard());
         }
         
