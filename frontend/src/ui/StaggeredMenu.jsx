@@ -12,12 +12,17 @@ const StaggeredMenu = ({
   menuButtonColor = '#ffffff',
   openMenuButtonColor = '#ccff00',
   colors = ['#111111', '#0A0A0A'],
-  logoUrl = ''
+  logoUrl = '',
+  isOpen: controlledIsOpen,
+  onToggle
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledIsOpen ?? internalOpen;
 
   const toggleMenu = () => {
-    setIsOpen(!isOpen);
+    const next = !isOpen;
+    if (onToggle) onToggle(next);
+    if (controlledIsOpen === undefined) setInternalOpen(next);
   };
 
   return (

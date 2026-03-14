@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:8069/api';
+const API_BASE_URL = 'http://localhost:8069/api';
 
 /**
  * Generic fetch wrapper with error handling
@@ -6,8 +6,6 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:8069/api
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  console.log("Connecting to:", url);
-
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
@@ -25,31 +23,21 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, fetchOptions);
-
+    
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      
-      // More descriptive error messages
-      if (response.status === 0) {
-        throw new Error('CORS error: Unable to connect to backend. Check if backend is running and CORS is configured.');
-      } else if (response.status === 404) {
-        throw new Error(`API endpoint not found: ${url}. Backend may not be configured correctly.`);
-      } else if (response.status >= 500) {
-        throw new Error(`Server error: Backend returned ${response.status}. Check backend logs.`);
-      } else {
-        throw new Error(
-          errorData.message ||
-          errorData.error ||
-          `HTTP error! status: ${response.status}`
-        );
-      }
+      throw new Error(
+        errorData.message || 
+        errorData.error || 
+        `HTTP error! status: ${response.status}`
+      );
     }
 
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
-
+    
     return response;
   } catch (error) {
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -70,26 +58,6 @@ export async function getProducts() {
   } catch (error) {
     console.error('Error fetching products:', error);
     throw new Error(`Failed to fetch products: ${error.message}`);
-  }
-}
-
-/**
- * GET /api/dashboard
- * Fetch dashboard KPIs from the backend
- */
-export async function getDashboard() {
-  try {
-    const data = await apiFetch('/dashboard');
-    // Transform backend response to frontend format
-    return [
-      { label: 'Total Products', value: data.total_products.toString(), status: 'optimal' },
-      { label: 'Low Stock Alerts', value: data.low_stock_alerts.toString(), status: 'critical' },
-      { label: 'Pending Receipts', value: data.pending_receipts.toString(), status: 'warning' },
-      { label: 'Pending Deliveries', value: data.pending_deliveries.toString(), status: 'optimal' },
-    ];
-  } catch (error) {
-    console.error('Error fetching dashboard:', error);
-    throw new Error(`Failed to fetch dashboard: ${error.message}`);
   }
 }
 
@@ -118,7 +86,7 @@ export async function createReceipt(receiptData) {
       method: 'POST',
       body: JSON.stringify(receiptData),
     });
-
+    
     return result;
   } catch (error) {
     console.error('Error creating receipt:', error);
@@ -131,7 +99,7 @@ export async function createReceipt(receiptData) {
  */
 export async function healthCheck() {
   try {
-    const response = await fetch(`${API_BASE_URL}/products`);
+    const response = await fetch(`${API_BASE_URL}/health`);
     return response.ok;
   } catch (error) {
     return false;

@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
-
-// Mock Product Data (for the dropdowns)
-const mockProducts = [
-  { id: 1, name: "Steel Rods", sku: "STL-01" },
-  { id: 2, name: "Lithium Batteries", sku: "BAT-99" },
-  { id: 3, name: "Copper Wire", sku: "COP-02" },
-  { id: 4, name: "Pallet Racks", sku: "RACK-10" },
-  { id: 5, name: "Safety Helmets", sku: "SAF-01" },
-];
+import React, { useState, useEffect } from 'react';
+import { getProducts } from '../api/api';
 
 const Receipts = () => {
+  const [products, setProducts] = useState([]);
   const [supplier, setSupplier] = useState('');
   const [reference, setReference] = useState('');
   // Initialize with one empty line item
   const [lineItems, setLineItems] = useState([{ productId: '', quantity: 1 }]);
   const [isValidating, setIsValidating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error('Failed to load products for receipts:', error);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   const handleAddLine = () => {
     setLineItems([...lineItems, { productId: '', quantity: 1 }]);
@@ -131,7 +137,7 @@ const Receipts = () => {
                       className="w-full bg-black/80 border border-white/10 px-4 py-3 rounded-xl text-white focus:outline-none focus:border-[#ccff00] transition-colors appearance-none"
                     >
                       <option value="" disabled>Select a product...</option>
-                      {mockProducts.map(p => (
+                      {products.map(p => (
                         <option key={p.id} value={p.id}>[{p.sku}] {p.name}</option>
                       ))}
                     </select>

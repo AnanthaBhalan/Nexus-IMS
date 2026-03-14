@@ -36,3 +36,21 @@ body {
 .animate-fade-up {
   animation: fadeUp 0.6s ease-out forwards;
 }
+
+/* Live Stock Pulse Animation */
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 rgba(204, 255, 0, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 10px rgba(204, 255, 0, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 rgba(204, 255, 0, 0); }
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #ccff00;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 0 rgba(204, 255, 0, 0.4);
+  animation: pulse-green 2s infinite;
+}
