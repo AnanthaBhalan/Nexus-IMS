@@ -11,8 +11,9 @@ class NexusApiController(http.Controller):
             # Total products
             total_products = request.env['product.product'].search_count([])
 
-            # Low stock count: products with available_qty < 10
-            low_stock_products = request.env['product.product'].search([('available_qty', '<', 10)])
+            # Low stock count: products with qty_available < 10
+            # (qty_available is computed by Odoo from stock.quant)
+            low_stock_products = request.env['product.product'].search([('qty_available', '<', 10)])
             low_stock_count = len(low_stock_products)
 
             # Mock other KPIs for now, as per API_CONTRACT
