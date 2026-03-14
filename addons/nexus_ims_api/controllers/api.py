@@ -127,23 +127,42 @@ class NexusApiController(http.Controller):
             }
             picking = env['stock.picking'].create(picking_vals)
 
+            # Allow product lookup by id or SKU (default_code)
             product_ids = [item.get('product_id') for item in items if item.get('product_id')]
-            existing_products = env['product.product'].browse(product_ids).exists()
-            missing_ids = set(product_ids) - set(existing_products.ids)
-            if missing_ids:
+            skus = [item.get('sku') for item in items if item.get('sku')]
+
+            products = env['product.product'].browse(product_ids)
+            if skus:
+                products |= env['product.product'].search([('default_code', 'in', skus)])
+
+            missing = []
+            for item in items:
+                product_id = item.get('product_id')
+                sku = item.get('sku')
+                if product_id and env['product.product'].browse(product_id).exists():
+                    continue
+                if sku and env['product.product'].search([('default_code', '=', sku)], limit=1).exists():
+                    continue
+                missing.append(product_id or sku)
+
+            if missing:
                 return request.make_response(
-                    json.dumps({'error': f'Products not found: {sorted(missing_ids)}'}),
+                    json.dumps({'error': f'Products not found: {missing}'}),
                     status=400,
                     headers=[('Content-Type', 'application/json')]
                 )
 
             for item in items:
                 product_id = item.get('product_id')
+                sku = item.get('sku')
                 qty = item.get('quantity_received') or item.get('quantity')
-                if not product_id or not qty:
+                if not qty or (not product_id and not sku):
                     continue
 
-                product = env['product.product'].browse(product_id)
+                if product_id:
+                    product = env['product.product'].browse(product_id)
+                else:
+                    product = env['product.product'].search([('default_code', '=', sku)], limit=1)
 
                 move_vals = {
                     'picking_id': picking.id,
@@ -210,23 +229,42 @@ class NexusApiController(http.Controller):
             }
             picking = env['stock.picking'].create(picking_vals)
 
+            # Allow product lookup by id or SKU (default_code)
             product_ids = [item.get('product_id') for item in items if item.get('product_id')]
-            existing_products = env['product.product'].browse(product_ids).exists()
-            missing_ids = set(product_ids) - set(existing_products.ids)
-            if missing_ids:
+            skus = [item.get('sku') for item in items if item.get('sku')]
+
+            products = env['product.product'].browse(product_ids)
+            if skus:
+                products |= env['product.product'].search([('default_code', 'in', skus)])
+
+            missing = []
+            for item in items:
+                product_id = item.get('product_id')
+                sku = item.get('sku')
+                if product_id and env['product.product'].browse(product_id).exists():
+                    continue
+                if sku and env['product.product'].search([('default_code', '=', sku)], limit=1).exists():
+                    continue
+                missing.append(product_id or sku)
+
+            if missing:
                 return request.make_response(
-                    json.dumps({'error': f'Products not found: {sorted(missing_ids)}'}),
+                    json.dumps({'error': f'Products not found: {missing}'}),
                     status=400,
                     headers=[('Content-Type', 'application/json')]
                 )
 
             for item in items:
                 product_id = item.get('product_id')
+                sku = item.get('sku')
                 qty = item.get('quantity_received') or item.get('quantity')
-                if not product_id or not qty:
+                if not qty or (not product_id and not sku):
                     continue
 
-                product = env['product.product'].browse(product_id)
+                if product_id:
+                    product = env['product.product'].browse(product_id)
+                else:
+                    product = env['product.product'].search([('default_code', '=', sku)], limit=1)
 
                 move_vals = {
                     'picking_id': picking.id,
