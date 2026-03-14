@@ -17,6 +17,7 @@ const mockRecentActivity = [
 
 const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [activityFilter, setActivityFilter] = useState('All');
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 md:p-12 font-sans pb-24">
@@ -28,7 +29,7 @@ const Dashboard = () => {
           <p className="text-neutral-500">Live inventory tracking and operations.</p>
         </div>
         <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse"></span>
+          <span className="pulse-dot"></span>
           <span className="text-xs font-medium text-neutral-300 uppercase tracking-widest">Live Sync Active</span>
         </div>
       </div>
@@ -62,7 +63,26 @@ const Dashboard = () => {
         
         {/* Table Header & Filters */}
         <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h2 className="text-xl font-bold tracking-tight">Recent Operations</h2>
+          <div>
+            <h2 className="text-xl font-bold tracking-tight mb-3">Recent Operations</h2>
+            
+            {/* Activity Filter Pills */}
+            <div className="flex gap-2">
+              {['All', 'Receipt', 'Transfer'].map((filter) => (
+                <button 
+                  key={filter}
+                  onClick={() => setActivityFilter(filter)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-300 ${
+                    activityFilter === filter 
+                      ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]' 
+                      : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white border border-white/5'
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+          </div>
           
           <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
             {['All', 'Receipts', 'Deliveries', 'Transfers'].map((filter) => (
@@ -95,7 +115,9 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {mockRecentActivity.map((row, i) => (
+              {mockRecentActivity
+                .filter(row => activityFilter === 'All' || row.type === activityFilter)
+                .map((row, i) => (
                 <tr key={i} className="hover:bg-white/5 transition-colors group cursor-pointer">
                   <td className="p-4 font-mono text-sm text-neutral-300 group-hover:text-white">{row.id}</td>
                   <td className="p-4">

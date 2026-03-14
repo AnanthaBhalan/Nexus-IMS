@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import StaggeredMenu from './ui/StaggeredMenu';
+import SimpleMenu from './ui/SimpleMenu';
+import { ToastProvider } from './ui/ToastContext';
 
 // Page Placeholders (They will build these out next)
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Receipts from './pages/Receipts';
+import NotFound from './pages/NotFound';
 
 // Wrapper to conditionally hide the menu on the Login screen
 const AppContent = () => {
@@ -20,34 +22,51 @@ const AppContent = () => {
     { label: 'Logout', link: '/' }
   ];
 
+  const [menuOpen, setMenuOpen] = React.useState(typeof window !== 'undefined' && window.innerWidth >= 768);
+
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans overflow-hidden">
       {!isLoginPage && (
-        <StaggeredMenu
-          position="right"
-          isFixed={true}
-          items={menuItems}
-          displayItemNumbering={true}
-          accentColor="#ccff00"
-          colors={['#111111', '#0A0A0A']}
-        />
+        <>
+          {/* Menu Toggle Button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="fixed top-6 left-6 z-50 bg-white/5 border border-white/10 p-3 rounded-lg hover:bg-white/10 transition-colors md:hidden"
+          >
+            <div className="w-6 h-5 relative flex flex-col justify-center">
+              <span className={`absolute h-0.5 w-full bg-[#ccff00] transition-transform ${menuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+              <span className={`h-0.5 w-full bg-[#ccff00] transition-opacity ${menuOpen ? 'opacity-0' : ''}`}></span>
+              <span className={`absolute h-0.5 w-full bg-[#ccff00] transition-transform ${menuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+            </div>
+          </button>
+
+          <SimpleMenu
+            items={menuItems}
+            isOpen={menuOpen}
+          />
+        </>
       )}
-      
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/receipts" element={<Receipts />} />
-      </Routes>
+
+      <div className="transition-all duration-300 pl-4 md:pl-64">
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/receipts" element={<Receipts />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
     </div>
   );
 };
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ToastProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </ToastProvider>
   );
 }
 

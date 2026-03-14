@@ -28,7 +28,7 @@ const Home = () => {
 
       {/* 1. THE NAVIGATION MENU */}
       <StaggeredMenu
-        position="right"
+        position="left"
         isFixed={true}
         items={menuItems}
         socialItems={socialItems}
