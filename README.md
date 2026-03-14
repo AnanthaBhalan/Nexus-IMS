@@ -1,71 +1,50 @@
-# Nexus IMS: Next-Gen Odoo Inventory Bridge 🚀
+🛡️ Nexus IMS: Predictive Warehouse Command Center
 
-Nexus IMS is a high-performance, React-based inventory management dashboard designed to bridge the gap between Odoo's powerful ERP backend and a modern, high-fidelity user experience. Built for the Odoo x Indus University Hackathon '26.
+Nexus IMS is a high-performance Inventory Management System designed for the Indian electronics market. It bridges the gap between static ERP data and proactive warehouse operations by integrating real-time predictive analytics with Odoo-style operational logic.
 
-## 🏗️ The Architecture
+🚀 Key Features
 
-We didn't just build a frontend; we engineered a full-stack synchronization layer:
+🔐 Enterprise Security
+2FA OTP Authentication: Secure login flow requiring a 4-digit verification code to ensure data integrity.
 
-- **Frontend**: React 18 + Vite + Tailwind CSS + GSAP (High-fidelity animations)
-- **Backend**: Odoo 16 (Python) with a Custom API Controller (nexus_ims_api)
-- **Infrastructure**: Dockerized environment (Odoo + PostgreSQL) for 100% offline reliability
+Role-Based Identity: "Warehouse Lead" profile management, simulating multi-level permission structures.
 
-## ✨ Key Features
+📈 Decision Support & Analytics
+Stock-Out Predictor: Smart algorithms that calculate "Days Remaining" based on sales velocity to prevent inventory gaps.
 
-- **Live Odoo Sync**: Real-time KPI tracking for Total Products, Low Stock, and Pending Moves
-- **Odoo Controller Integration**: Custom-built Python endpoints (/api/dashboard, /api/products) utilizing the Odoo ORM
-- **Electric UI**: A "Pitch Black & Electric Lime" design language featuring a GridMotion login and StaggeredMenu navigation
-- **Robust State Management**: Skeleton loaders, toast notifications, and comprehensive offline error handling
-- **Two-Way Communication**: Process inventory receipts directly from the React UI into the Odoo stock move system
+Price Volatility Engine: INR-localized monitoring that flags low-profit margins if supplier costs fluctuate in the Indian market.
 
-## 🛠️ Tech Stack
+📦 Operational Excellence
+Closed-Loop Synchronization: A unified global state ensuring that Receipts and Deliveries instantly update the master ledger.
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React, Vite, Framer Motion, GSAP, Tailwind CSS |
-| Backend | Odoo 16, Python (Werkzeug) |
-| Database | PostgreSQL 15 |
-| DevOps | Docker, Docker Compose |
+The Audit Mode: A dedicated reconciliation interface for physical-to-digital inventory checks with automated discrepancy logging.
 
-## 🚀 Installation & Setup
+Product Journey: A comprehensive "biography" of every SKU, tracking its movement from initial receipt to final delivery.
 
-To run Nexus IMS locally, ensure you have Docker and Node.js installed.
+Warehouse Heatmap: A visual grid for shelf-location tracking (A-101, B-202) to optimize picking and packing efficiency.
 
-### 1. Backend Setup (Odoo)
+🛠️ Technical Stack
+Frontend: React.js + Vite
 
-```bash
-# Clone the repository
-git clone https://github.com/AnanthaBhalan/Nexus-IMS.git
+Styling: Tailwind CSS (Custom "Electric Lime" Theme)
 
-# Start the Odoo & Postgres containers
-docker compose up -d
+State Management: React Context & Hooks (Simulating Odoo stock.move logic)
 
-# Initialize the custom Nexus API module
-docker exec -u root nexus-core-odoo-1 odoo -i nexus_ims_api -d odoo --stop-after-init
-```
+Animations: Framer Motion / CSS Transitions
 
-### 2. Frontend Setup (React)
+Localization: Intl.NumberFormat (INR Currency & Indian Numbering System)
 
-```bash
-cd nexus-core
+📦 Installation & Setup
+Clone the repository:
+
+git clone https://github.com/your-username/nexus-ims.git
+Navigate to the frontend directory:
+
+cd nexus-ims/frontend
+Install dependencies:
+
 npm install
+Launch the Development Server:
+
 npm run dev
-```
-
-Configure your `.env.local` with:
-```
-VITE_API_URL=http://localhost:8069
-```
-
-## 👥 The Team
-
-- **AnanthaBhalan R (Team Lead)**: UI/UX Architecture & GSAP Implementation
-- **Pallamala Venkata Hasika**: Odoo API Development & Backend-Frontend Integration
-- **Logesh M**: Database Seeding, QA & Infrastructure Monitoring
-
-## 📝 Compliance Highlights
-
-- ✅ **Dynamic Data**: No static JSON; everything is fetched from the Odoo ORM
-- ✅ **Responsive**: Fully tested on mobile and desktop viewports
-- ✅ **Offline-Ready**: 100% local Docker-based solution
-- ✅ **Advanced Odoo**: Built a native custom module instead of using external middleware
+Note: node_modules are excluded via .gitignore to maintain a lightweight repository. Ensure you run npm install after cloning.
