@@ -1,0 +1,21 @@
+Product Name,Product Type,Sales Price,Cost,Product Category,Internal Reference,Barcode,Product Tags,Weight (kg),Volume (m³),Customer Lead Time (days),Description for Receipts
+HP Pavilion Laptop 15,Storable Product,60000,45000,Electronics,LAP001,10000001,Electronics,1.8,0.3,3,Store in electronics rack A1
+Logitech Wireless Mouse M235,Storable Product,700,400,Accessories,MOU001,10000002,Accessories,0.09,0.02,2,Place in accessories bin B1
+Dell KB216 USB Keyboard,Storable Product,1200,800,Accessories,KEY001,10000003,Accessories,0.45,0.1,2,Store in accessories rack B2
+Samsung 24in LED Monitor,Storable Product,14000,10500,Electronics,MON001,10000004,Electronics,3.2,0.5,4,Store upright in monitor section
+HP LaserJet Pro Printer M404,Storable Product,18000,15000,Electronics,PRI001,10000005,Electronics,8.5,0.9,5,Place in heavy equipment rack
+Anker USB-C Charging Cable,Storable Product,350,180,Accessories,USB001,10000006,Accessories,0.05,0.01,1,Store in cable drawer
+TP-Link Archer C6 WiFi Router,Storable Product,3200,2500,Networking,ROU001,10000007,Networking,0.4,0.15,3,Place in networking shelf
+Samsung 1TB SSD 870 EVO,Storable Product,7500,6000,Storage,SSD001,10000008,Storage,0.08,0.02,3,Store in anti-static storage box
+Seagate 2TB External Hard Drive,Storable Product,6500,5000,Storage,HDD001,10000009,Storage,0.25,0.08,3,Place in storage device rack
+Logitech C920 HD Webcam,Storable Product,5500,4200,Accessories,WEB001,10000010,Accessories,0.16,0.04,2,Store in camera accessories section
+Blue Yeti USB Microphone,Storable Product,9000,7000,Audio,MIC001,10000011,Audio,0.55,0.2,3,Store in audio equipment shelf
+Apple iPad 10th Gen Tablet,Storable Product,45000,36000,Electronics,TAB001,10000012,Electronics,0.48,0.12,4,Store in tablet locker
+Epson Full HD Office Projector,Storable Product,52000,42000,Electronics,PRO001,10000013,Electronics,4.1,0.8,5,Store in projector rack
+JBL Flip 6 Portable Speaker,Storable Product,9000,7000,Audio,SPE001,10000014,Audio,0.8,0.25,2,Place in audio accessories bin
+Sony WH-CH720N Headphones,Storable Product,11000,8500,Audio,HEA001,10000015,Audio,0.32,0.1,3,Store in headphone rack
+Mi 20000mAh Power Bank,Storable Product,2000,1400,Accessories,POW001,10000016,Accessories,0.43,0.15,2,Place in mobile accessories section
+NVIDIA RTX 4060 Graphics Card,Storable Product,38000,32000,Electronics,GPU001,10000017,Electronics,1.1,0.3,4,Store in GPU anti-static rack
+ASUS Prime B550 Motherboard,Storable Product,15000,12000,Electronics,MOT001,10000018,Electronics,0.95,0.28,3,Store in motherboard shelf
+Corsair Vengeance 16GB RAM,Storable Product,6500,5000,Storage,RAM001,10000019,Storage,0.12,0.03,2,Place in RAM module case
+Cooler Master RGB Cooling Fan,Storable Product,900,600,Accessories,FAN001,10000020,Accessories,0.2,0.06,2,Store in cooling accessories rack
