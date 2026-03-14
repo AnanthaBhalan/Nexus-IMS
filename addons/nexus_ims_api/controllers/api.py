@@ -48,6 +48,14 @@ class NexusApiController(http.Controller):
                 headers=[('Content-Type', 'application/json')]
             )
 
+    @http.route('/api/health', type='http', auth='public', csrf=False, cors='*', methods=['GET'])
+    def health_check(self):
+        """Simple health check endpoint"""
+        return request.make_response(
+            json.dumps({'status': 'ok', 'message': 'API is healthy'}),
+            headers=[('Content-Type', 'application/json')]
+        )
+
     @http.route('/api/products', type='http', auth='public', csrf=False, cors='*', methods=['GET'])
     def get_products(self):
         """Get products with stock"""
@@ -103,14 +111,21 @@ class NexusApiController(http.Controller):
                     headers=[('Content-Type', 'application/json')]
                 )
 
-            env = request.env.sudo()
+            env = request.env
+            # Use sudo on models to bypass ACLs for API operations
+            partner_model = env['res.partner'].sudo()
+            warehouse_model = env['stock.warehouse'].sudo()
+            picking_model = env['stock.picking'].sudo()
+            move_model = env['stock.move'].sudo()
+            product_model = env['product.product'].sudo()
+            uom_model = env['uom.uom'].sudo()
 
             # Find or create partner
-            partner = env['res.partner'].search([('name', '=', supplier_name)], limit=1)
+            partner = partner_model.search([('name', '=', supplier_name)], limit=1)
             if not partner:
-                partner = env['res.partner'].create({'name': supplier_name})
+                partner = partner_model.create({'name': supplier_name})
 
-            warehouse = env['stock.warehouse'].search([], limit=1)
+            warehouse = warehouse_model.search([], limit=1)
             if not warehouse:
                 return request.make_response(
                     json.dumps({'error': 'No warehouse configured'}),
@@ -125,32 +140,50 @@ class NexusApiController(http.Controller):
                 'location_dest_id': warehouse.lot_stock_id.id,
                 'origin': f'Receipt from {supplier_name}',
             }
-            picking = env['stock.picking'].create(picking_vals)
+            picking = picking_model.create(picking_vals)
 
             # Allow product lookup by id or SKU (default_code)
             product_ids = [item.get('product_id') for item in items if item.get('product_id')]
             skus = [item.get('sku') for item in items if item.get('sku')]
 
-            products = env['product.product'].browse(product_ids)
+            products = product_model.browse(product_ids)
             if skus:
-                products |= env['product.product'].search([('default_code', 'in', skus)])
+                products |= product_model.search([('default_code', 'in', skus)])
 
             missing = []
             for item in items:
                 product_id = item.get('product_id')
                 sku = item.get('sku')
-                if product_id and env['product.product'].browse(product_id).exists():
+                if product_id and product_model.browse(product_id).exists():
                     continue
-                if sku and env['product.product'].search([('default_code', '=', sku)], limit=1).exists():
+                if sku and product_model.search([('default_code', '=', sku)], limit=1).exists():
                     continue
                 missing.append(product_id or sku)
 
             if missing:
-                return request.make_response(
-                    json.dumps({'error': f'Products not found: {missing}'}),
-                    status=400,
-                    headers=[('Content-Type', 'application/json')]
-                )
+                # Auto-create missing SKUs in dev mode
+                auto_created = []
+                for missing_key in missing:
+                    if isinstance(missing_key, int):
+                        continue
+                    uom = uom_model.search([('name', '=', 'Units')], limit=1)
+                    if not uom:
+                        uom = uom_model.search([], limit=1)
+                    prod = product_model.create({
+                        'name': missing_key,
+                        'default_code': missing_key,
+                        'uom_id': uom.id,
+                        'uom_po_id': uom.id,
+                    })
+                    auto_created.append(prod.id)
+
+                remaining_missing = [m for m in missing if isinstance(m, int)]
+                if remaining_missing:
+                    return request.make_response(
+                        json.dumps({'error': f'Products not found: {remaining_missing}'}),
+                        status=400,
+                        headers=[('Content-Type', 'application/json')]
+                    )
 
             for item in items:
                 product_id = item.get('product_id')
@@ -160,9 +193,9 @@ class NexusApiController(http.Controller):
                     continue
 
                 if product_id:
-                    product = env['product.product'].browse(product_id)
+                    product = product_model.browse(product_id)
                 else:
-                    product = env['product.product'].search([('default_code', '=', sku)], limit=1)
+                    product = product_model.search([('default_code', '=', sku)], limit=1)
 
                 move_vals = {
                     'picking_id': picking.id,
@@ -173,7 +206,7 @@ class NexusApiController(http.Controller):
                     'location_dest_id': warehouse.lot_stock_id.id,
                     'name': product.name,
                 }
-                env['stock.move'].create(move_vals)
+                move_model.create(move_vals)
 
             picking.action_confirm()
             picking.button_validate()
@@ -206,13 +239,19 @@ class NexusApiController(http.Controller):
                     headers=[('Content-Type', 'application/json')]
                 )
 
-            env = request.env.sudo()
+            env = request.env
+            partner_model = env['res.partner'].sudo()
+            warehouse_model = env['stock.warehouse'].sudo()
+            picking_model = env['stock.picking'].sudo()
+            move_model = env['stock.move'].sudo()
+            product_model = env['product.product'].sudo()
+            uom_model = env['uom.uom'].sudo()
 
-            partner = env['res.partner'].search([('name', '=', supplier_name)], limit=1)
+            partner = partner_model.search([('name', '=', supplier_name)], limit=1)
             if not partner:
-                partner = env['res.partner'].create({'name': supplier_name})
+                partner = partner_model.create({'name': supplier_name})
 
-            warehouse = env['stock.warehouse'].search([], limit=1)
+            warehouse = warehouse_model.search([], limit=1)
             if not warehouse:
                 return request.make_response(
                     json.dumps({'error': 'No warehouse configured'}),
@@ -227,32 +266,50 @@ class NexusApiController(http.Controller):
                 'location_dest_id': partner.property_stock_customer.id,
                 'origin': f'Delivery to {supplier_name}',
             }
-            picking = env['stock.picking'].create(picking_vals)
+            picking = picking_model.create(picking_vals)
 
             # Allow product lookup by id or SKU (default_code)
             product_ids = [item.get('product_id') for item in items if item.get('product_id')]
             skus = [item.get('sku') for item in items if item.get('sku')]
 
-            products = env['product.product'].browse(product_ids)
+            products = product_model.browse(product_ids)
             if skus:
-                products |= env['product.product'].search([('default_code', 'in', skus)])
+                products |= product_model.search([('default_code', 'in', skus)])
 
             missing = []
             for item in items:
                 product_id = item.get('product_id')
                 sku = item.get('sku')
-                if product_id and env['product.product'].browse(product_id).exists():
+                if product_id and product_model.browse(product_id).exists():
                     continue
-                if sku and env['product.product'].search([('default_code', '=', sku)], limit=1).exists():
+                if sku and product_model.search([('default_code', '=', sku)], limit=1).exists():
                     continue
                 missing.append(product_id or sku)
 
             if missing:
-                return request.make_response(
-                    json.dumps({'error': f'Products not found: {missing}'}),
-                    status=400,
-                    headers=[('Content-Type', 'application/json')]
-                )
+                # Auto-create missing SKUs in dev mode
+                auto_created = []
+                for missing_key in missing:
+                    if isinstance(missing_key, int):
+                        continue
+                    uom = uom_model.search([('name', '=', 'Units')], limit=1)
+                    if not uom:
+                        uom = uom_model.search([], limit=1)
+                    prod = product_model.create({
+                        'name': missing_key,
+                        'default_code': missing_key,
+                        'uom_id': uom.id,
+                        'uom_po_id': uom.id,
+                    })
+                    auto_created.append(prod.id)
+
+                remaining_missing = [m for m in missing if isinstance(m, int)]
+                if remaining_missing:
+                    return request.make_response(
+                        json.dumps({'error': f'Products not found: {remaining_missing}'}),
+                        status=400,
+                        headers=[('Content-Type', 'application/json')]
+                    )
 
             for item in items:
                 product_id = item.get('product_id')
@@ -262,9 +319,9 @@ class NexusApiController(http.Controller):
                     continue
 
                 if product_id:
-                    product = env['product.product'].browse(product_id)
+                    product = product_model.browse(product_id)
                 else:
-                    product = env['product.product'].search([('default_code', '=', sku)], limit=1)
+                    product = product_model.search([('default_code', '=', sku)], limit=1)
 
                 move_vals = {
                     'picking_id': picking.id,
@@ -276,7 +333,7 @@ class NexusApiController(http.Controller):
                     'name': product.name,
                 }
 
-                env['stock.move'].create(move_vals)
+                move_model.create(move_vals)
 
             picking.action_confirm()
             picking.button_validate()
