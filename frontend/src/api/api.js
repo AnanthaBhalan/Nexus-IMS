@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8069/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8069/api';
 
 /**
  * Generic fetch wrapper with error handling

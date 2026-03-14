@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts } from '../api/productApi';
+import { getProducts } from '../api/api';
 import SkeletonTable from '../ui/SkeletonTable';
 import { useToast } from '../ui/ToastContext';
 
@@ -14,21 +14,27 @@ const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
       try {
         setIsLoading(true);
-        setProducts(await getProducts());
-      } catch (e) {
-        console.error('Failed to load products', e);
+        setError(null);
+        const data = await getProducts();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+        addToast(`Failed to load products: ${err.message}`, 'error');
+        console.error('Failed to load products', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     load();
-  }, []);
+  }, [addToast]);
 
   // Frontend Filtering Logic
   const filteredProducts = products.filter(product => {
@@ -37,8 +43,6 @@ const Products = () => {
     const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const { addToast } = useToast(); // Initialize the toast system
 
   const handleExportCSV = () => {
     if (filteredProducts.length === 0) {
@@ -83,6 +87,18 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 md:p-12 font-sans pb-24 relative">
+
+      {/* Error State */}
+      {error && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span className="text-sm font-medium">Backend Offline: {error}</span>
+          </div>
+        </div>
+      )}
 
       {/* NEW: Create Product Modal Overlay */}
       {isModalOpen && (

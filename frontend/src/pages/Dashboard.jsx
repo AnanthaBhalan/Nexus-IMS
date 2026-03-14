@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { getDashboardKPIs, getRecentActivity } from '../api/dashboardApi';
+import { getDashboard } from '../api/api';
 
 const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activityFilter, setActivityFilter] = useState('All');
   const [kpis, setKpis] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      setKpis(await getDashboardKPIs());
-      setRecentActivity(await getRecentActivity());
+      try {
+        setIsLoading(true);
+        setError(null);
+        setKpis(await getDashboard());
+        // TODO: Add recent activity API call when endpoint is available
+        setRecentActivity([
+          { id: 'TXN-092', type: 'Receipt', item: 'Steel Rods', qty: '+500', status: 'Done', date: 'Today, 08:42 AM' },
+          { id: 'TXN-093', type: 'Delivery', item: 'Lithium Batteries', qty: '-40', status: 'Pending', date: 'Today, 09:15 AM' },
+          { id: 'TXN-094', type: 'Transfer', item: 'Copper Wire', qty: '120', status: 'Ready', date: 'Yesterday' },
+          { id: 'TXN-095', type: 'Adjustment', item: 'Pallet Racks', qty: '-2', status: 'Done', date: 'Yesterday' },
+        ]);
+      } catch (err) {
+        setError(err.message);
+        console.error('Failed to load dashboard data:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     load();
@@ -18,6 +35,17 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 md:p-12 font-sans pb-24">
+      {/* Error State */}
+      {error && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <span className="text-sm font-medium">Backend Offline: {error}</span>
+          </div>
+        </div>
+      )}
       
       {/* Header Section */}
       <div className="mb-12 flex justify-between items-end">
@@ -27,13 +55,24 @@ const Dashboard = () => {
         </div>
         <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
           <span className="pulse-dot"></span>
-          <span className="text-xs font-medium text-neutral-300 uppercase tracking-widest">Live Sync Active</span>
+          <span className="text-xs font-medium text-neutral-300 uppercase tracking-widest">
+            {isLoading ? 'Loading...' : 'Live Sync Active'}
+          </span>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {kpis.map((kpi, index) => (
+        {isLoading ? (
+          // Loading skeleton for KPIs
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bg-white/5 border border-white/10 p-6 rounded-2xl animate-pulse">
+              <div className="h-4 bg-white/10 rounded mb-4 w-3/4"></div>
+              <div className="h-8 bg-white/10 rounded w-1/2"></div>
+            </div>
+          ))
+        ) : (
+          kpis.map((kpi, index) => (
           <div 
             key={index} 
             className="group bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 hover:border-[#ccff00]/50 transition-all duration-300 cursor-default"
@@ -52,7 +91,7 @@ const Dashboard = () => {
               )}
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {/* Main Content Area: Filters & Data Table */}
