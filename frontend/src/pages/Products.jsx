@@ -3,7 +3,7 @@ import { getProducts } from '../api/api';
 import SkeletonTable from '../ui/SkeletonTable';
 import { useToast } from '../ui/ToastContext';
 
-const categories = ['All', 'Raw Materials', 'Components', 'Consumables', 'Assets'];
+const categories = ['All', 'Electronics', 'Accessories', 'Networking', 'Storage', 'Audio'];
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -124,9 +124,11 @@ const Products = () => {
                 <div>
                   <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Category</label>
                   <select className="w-full bg-white/5 border border-white/10 px-4 py-3 rounded-xl text-white focus:border-[#ccff00] outline-none transition-colors appearance-none">
-                    <option value="Raw Materials">Raw Materials</option>
-                    <option value="Components">Components</option>
-                    <option value="Consumables">Consumables</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Networking">Networking</option>
+                    <option value="Storage">Storage</option>
+                    <option value="Audio">Audio</option>
                   </select>
                 </div>
                 <div>

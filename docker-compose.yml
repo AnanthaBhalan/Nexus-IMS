@@ -10,7 +10,7 @@ services:
     restart: always
 
   odoo:
-    image: odoo:17.0
+    image: odoo:16
     depends_on:
       - db
     ports:
@@ -23,12 +23,13 @@ services:
       - DB_HOST=db
       - DB_USER=odoo
       - DB_PASSWORD=odoo
-      - DB_NAME=nexus
+      - ODOO_DB=nexus
       - HOST=db           # MUST match the service name above
       - PORT=5432
       - USER=odoo
       - PASSWORD=odoo
       - ADDONS_PATH=/mnt/extra-addons
+    command: ["odoo", "-d", "nexus", "--addons-path=/mnt/extra-addons"]
     restart: always
 
 volumes:
