@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
-
-// Mock Data matching your API_CONTRACT.md
-const mockProducts = [
-  { id: 1, name: "Steel Rods", sku: "STL-01", category: "Raw Materials", uom: "kg", stock_available: 150 },
-  { id: 2, name: "Lithium Batteries", sku: "BAT-99", category: "Components", uom: "Units", stock_available: 5 },
-  { id: 3, name: "Copper Wire", sku: "COP-02", category: "Raw Materials", uom: "m", stock_available: 1200 },
-  { id: 4, name: "Pallet Racks", sku: "RACK-10", category: "Assets", uom: "Units", stock_available: 0 },
-  { id: 5, name: "Safety Helmets", sku: "SAF-01", category: "Consumables", uom: "Units", stock_available: 45 },
-];
+import React, { useState, useEffect } from 'react';
+import { getProducts } from '../api/productApi';
 
 const categories = ['All', 'Raw Materials', 'Components', 'Consumables', 'Assets'];
 
 const Products = () => {
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setProducts(await getProducts());
+      } catch (e) {
+        console.error('Failed to load products', e);
+      }
+    };
+
+    load();
+  }, []);
+
   // Frontend Filtering Logic
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           product.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
