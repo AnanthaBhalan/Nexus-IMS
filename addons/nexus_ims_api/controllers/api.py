@@ -77,22 +77,137 @@ class NexusApiController(http.Controller):
         try:
             data = json.loads(request.httprequest.data.decode('utf-8'))
 
-            if not data.get('supplier') or not data.get('items'):
+            if not data.get('supplier') or not data.get('items') or not isinstance(data['items'], list):
                 return request.make_response(
-                    json.dumps({'error': 'supplier and items are required'}),
+                    json.dumps({'error': 'supplier and items array are required'}),
                     status=400,
                     headers=[('Content-Type', 'application/json')]
                 )
 
-            # For now, just log and return success (implement actual receipt creation later)
-            # In real implementation, create stock.picking or stock.move records
-            receipt_data = {
-                'supplier': data['supplier'],
-                'items': data['items']
+            # Find or create partner
+            partner = request.env['res.partner'].search([('name', '=', data['supplier'])], limit=1)
+            if not partner:
+                partner = request.env['res.partner'].create({'name': data['supplier']})
+
+            # Get default warehouse
+            warehouse = request.env['stock.warehouse'].search([], limit=1)
+            if not warehouse:
+                return request.make_response(
+                    json.dumps({'error': 'No warehouse configured'}),
+                    status=500,
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            # Create stock.picking for receipt (incoming)
+            picking_vals = {
+                'partner_id': partner.id,
+                'picking_type_id': warehouse.in_type_id.id,  # Incoming type
+                'location_id': partner.property_stock_supplier.id,  # Supplier location
+                'location_dest_id': warehouse.lot_stock_id.id,  # Stock location
+                'origin': f'Receipt from {data["supplier"]}',
             }
+            picking = request.env['stock.picking'].create(picking_vals)
+
+            # Create stock.move lines
+            for item in data['items']:
+                if not item.get('product_id') or not item.get('quantity_received'):
+                    continue  # Skip invalid items
+                product = request.env['product.product'].browse(item['product_id'])
+                if not product:
+                    continue
+                move_vals = {
+                    'picking_id': picking.id,
+                    'product_id': product.id,
+                    'product_uom_qty': item['quantity_received'],
+                    'product_uom': product.uom_id.id,
+                    'location_id': partner.property_stock_supplier.id,
+                    'location_dest_id': warehouse.lot_stock_id.id,
+                    'name': product.name,
+                }
+                request.env['stock.move'].create(move_vals)
+
+            # Confirm and validate the picking
+            picking.action_confirm()
+            picking.button_validate()
 
             return request.make_response(
-                json.dumps({'message': 'Receipt created successfully', 'data': receipt_data}),
+                json.dumps({'message': 'Receipt created and processed successfully', 'picking_id': picking.id}),
+                headers=[('Content-Type', 'application/json')]
+            )
+        except json.JSONDecodeError:
+            return request.make_response(
+                json.dumps({'error': 'Invalid JSON'}),
+                status=400,
+                headers=[('Content-Type', 'application/json')]
+            )
+        except Exception as e:
+            return request.make_response(
+                json.dumps({'error': str(e)}),
+                status=500,
+                headers=[('Content-Type', 'application/json')]
+            )
+
+    @http.route('/api/deliveries', type='http', auth='public', csrf=False, cors='*', methods=['POST'])
+    def create_delivery(self):
+        """Create a new delivery (exact same process as receipts, but decreasing stock)"""
+        try:
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+
+            if not data.get('supplier') or not data.get('items') or not isinstance(data['items'], list):
+                return request.make_response(
+                    json.dumps({'error': 'supplier and items array are required'}),
+                    status=400,
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            # Find or create partner (treating supplier as customer for deliveries)
+            partner = request.env['res.partner'].search([('name', '=', data['supplier'])], limit=1)
+            if not partner:
+                partner = request.env['res.partner'].create({'name': data['supplier']})
+
+            # Get default warehouse
+            warehouse = request.env['stock.warehouse'].search([], limit=1)
+            if not warehouse:
+                return request.make_response(
+                    json.dumps({'error': 'No warehouse configured'}),
+                    status=500,
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            # Create stock.picking for delivery (outgoing)
+            picking_vals = {
+                'partner_id': partner.id,
+                'picking_type_id': warehouse.out_type_id.id,  # Outgoing type
+                'location_id': warehouse.lot_stock_id.id,  # Stock location
+                'location_dest_id': partner.property_stock_customer.id,  # Customer location
+                'origin': f'Delivery to {data["supplier"]}',
+            }
+            picking = request.env['stock.picking'].create(picking_vals)
+
+            # Create stock.move lines
+            for item in data['items']:
+                if not item.get('product_id') or not item.get('quantity_received'):
+                    continue  # Skip invalid items
+                product = request.env['product.product'].browse(item['product_id'])
+                if not product:
+                    continue
+                move_vals = {
+                    'picking_id': picking.id,
+                    'product_id': product.id,
+                    'product_uom_qty': item['quantity_received'],
+                    'product_uom': product.uom_id.id,
+                    'location_id': warehouse.lot_stock_id.id,
+                    'location_dest_id': partner.property_stock_customer.id,
+                    'name': product.name,
+                }
+                request.env['stock.move'].create(move_vals)
+
+            # Confirm and validate the picking
+            picking.action_confirm()
+            picking.button_validate()
+
+            return request.make_response(
+                json.dumps({'message': 'Delivery created and processed successfully', 'picking_id': picking.id}),
                 headers=[('Content-Type', 'application/json')]
             )
         except json.JSONDecodeError:
