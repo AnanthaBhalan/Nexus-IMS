@@ -1,10 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8069/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8069';
 
 /**
  * Generic fetch wrapper with error handling
  */
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  console.log("Connecting to:", url);
 
   const defaultOptions = {
     headers: {
@@ -26,11 +28,21 @@ async function apiFetch(endpoint, options = {}) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-        errorData.error ||
-        `HTTP error! status: ${response.status}`
-      );
+      
+      // More descriptive error messages
+      if (response.status === 0) {
+        throw new Error('CORS error: Unable to connect to backend. Check if backend is running and CORS is configured.');
+      } else if (response.status === 404) {
+        throw new Error(`API endpoint not found: ${url}. Backend may not be configured correctly.`);
+      } else if (response.status >= 500) {
+        throw new Error(`Server error: Backend returned ${response.status}. Check backend logs.`);
+      } else {
+        throw new Error(
+          errorData.message ||
+          errorData.error ||
+          `HTTP error! status: ${response.status}`
+        );
+      }
     }
 
     const contentType = response.headers.get('content-type');
@@ -119,9 +131,17 @@ export async function createReceipt(receiptData) {
  */
 export async function healthCheck() {
   try {
+    console.log("Testing connection to:", API_BASE_URL);
     const response = await fetch(`${API_BASE_URL}/health`);
-    return response.ok;
-  } catch {
+    if (response.ok) {
+      console.log("✅ Backend health check passed");
+      return true;
+    } else {
+      console.log("⚠️ Backend responded with:", response.status);
+      return false;
+    }
+  } catch (error) {
+    console.log("❌ Backend health check failed:", error.message);
     return false;
   }
 }

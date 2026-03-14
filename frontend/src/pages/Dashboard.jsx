@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDashboard } from '../api/api';
+import { getDashboard, healthCheck } from '../api/api';
 
 const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -14,7 +14,19 @@ const Dashboard = () => {
       try {
         setIsLoading(true);
         setError(null);
-        setKpis(await getDashboard());
+        
+        // Test connectivity first
+        console.log("🔍 Testing backend connectivity...");
+        const isHealthy = await healthCheck();
+        
+        if (isHealthy) {
+          console.log("✅ Backend is healthy, loading data...");
+          setKpis(await getDashboard());
+        } else {
+          console.log("⚠️ Backend health check failed, attempting data load anyway...");
+          setKpis(await getDashboard());
+        }
+        
         // TODO: Add recent activity API call when endpoint is available
         setRecentActivity([
           { id: 'TXN-092', type: 'Receipt', item: 'Steel Rods', qty: '+500', status: 'Done', date: 'Today, 08:42 AM' },
