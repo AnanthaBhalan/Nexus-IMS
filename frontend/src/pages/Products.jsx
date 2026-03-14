@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getProducts } from '../api/productApi';
 import SkeletonTable from '../ui/SkeletonTable';
 import { useToast } from '../ui/ToastContext';
-
-// Mock Data
-const mockProducts = [
-  { id: 1, name: "Steel Rods", sku: "STL-01", category: "Raw Materials", uom: "kg", stock_available: 150 },
-  { id: 2, name: "Lithium Batteries", sku: "BAT-99", category: "Components", uom: "Units", stock_available: 5 },
-  { id: 3, name: "Copper Wire", sku: "COP-02", category: "Raw Materials", uom: "m", stock_available: 1200 },
-  { id: 4, name: "Pallet Racks", sku: "RACK-10", category: "Assets", uom: "Units", stock_available: 0 },
-  { id: 5, name: "Safety Helmets", sku: "SAF-01", category: "Consumables", uom: "Units", stock_available: 45 },
-];
 
 const categories = ['All', 'Raw Materials', 'Components', 'Consumables', 'Assets'];
 
 const Products = () => {
+  const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
@@ -22,8 +15,24 @@ const Products = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        setProducts(await getProducts());
+      } catch (e) {
+        console.error('Failed to load products', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  // Frontend Filtering Logic
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           product.sku.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'All' || product.category === activeCategory;
     return matchesSearch && matchesCategory;
@@ -42,7 +51,7 @@ const Products = () => {
     
     // 2. Map the filtered data to CSV rows
     const rows = filteredProducts.map(p => 
-      `${p.sku},"${p.name}",${p.category},${p.stock_available},${p.uom}` 
+      `${p.sku},"${p.name}",${p.category},${p.qty_available || p.stock_available},${p.uom}` 
     );
     
     // 3. Combine headers and rows
@@ -227,12 +236,12 @@ const Products = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <span className={`text-lg font-bold ${product.stock_available === 0 ? 'text-red-500' : product.stock_available < 10 ? 'text-orange-400' : 'text-white'}`}>
-                            {product.stock_available}
+                          <span className={`text-lg font-bold ${(product.qty_available || product.stock_available) === 0 ? 'text-red-500' : (product.qty_available || product.stock_available) < 10 ? 'text-orange-400' : 'text-white'}`}>
+                            {product.qty_available || product.stock_available}
                           </span>
                           <span className="text-xs text-neutral-500 uppercase">{product.uom}</span>
 
-                          {product.stock_available === 0 && (
+                          {(product.qty_available || product.stock_available) === 0 && (
                             <span className="text-[10px] font-bold text-black bg-red-500 px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">
                               Empty
                             </span>

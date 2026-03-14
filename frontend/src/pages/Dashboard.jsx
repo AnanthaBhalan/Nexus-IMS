@@ -1,23 +1,20 @@
-import React, { useState } from 'react';
-
-// Mock Data (Your Integration guy will replace this with the real API later)
-const mockKPIs = [
-  { label: 'Total Products', value: '1,204', status: 'optimal' },
-  { label: 'Low Stock Alerts', value: '14', status: 'critical' },
-  { label: 'Pending Receipts', value: '8', status: 'warning' },
-  { label: 'Pending Deliveries', value: '23', status: 'optimal' }
-];
-
-const mockRecentActivity = [
-  { id: 'TXN-092', type: 'Receipt', item: 'Steel Rods', qty: '+500', status: 'Done', date: 'Today, 08:42 AM' },
-  { id: 'TXN-093', type: 'Delivery', item: 'Lithium Batteries', qty: '-40', status: 'Pending', date: 'Today, 09:15 AM' },
-  { id: 'TXN-094', type: 'Transfer', item: 'Copper Wire', qty: '120', status: 'Ready', date: 'Yesterday' },
-  { id: 'TXN-095', type: 'Adjustment', item: 'Pallet Racks', qty: '-2', status: 'Done', date: 'Yesterday' },
-];
+import React, { useState, useEffect } from 'react';
+import { getDashboardKPIs, getRecentActivity } from '../api/dashboardApi';
 
 const Dashboard = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [activityFilter, setActivityFilter] = useState('All');
+  const [kpis, setKpis] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      setKpis(await getDashboardKPIs());
+      setRecentActivity(await getRecentActivity());
+    };
+
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-8 md:p-12 font-sans pb-24">
@@ -36,7 +33,7 @@ const Dashboard = () => {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {mockKPIs.map((kpi, index) => (
+        {kpis.map((kpi, index) => (
           <div 
             key={index} 
             className="group bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 hover:border-[#ccff00]/50 transition-all duration-300 cursor-default"
@@ -115,7 +112,7 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {mockRecentActivity
+              {recentActivity
                 .filter(row => activityFilter === 'All' || row.type === activityFilter)
                 .map((row, i) => (
                 <tr key={i} className="hover:bg-white/5 transition-colors group cursor-pointer">
