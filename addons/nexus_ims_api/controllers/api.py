@@ -69,3 +69,40 @@ class NexusApiController(http.Controller):
                 status=500,
                 headers=[('Content-Type', 'application/json')]
             )
+
+    @http.route('/api/receipts', type='http', auth='public', csrf=False, cors='*', methods=['POST'])
+    def create_receipt(self):
+        """Create a new receipt when items arrive from vendors"""
+        try:
+            data = json.loads(request.httprequest.data.decode('utf-8'))
+
+            if not data.get('supplier') or not data.get('items'):
+                return request.make_response(
+                    json.dumps({'error': 'supplier and items are required'}),
+                    status=400,
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            # For now, just log and return success (implement actual receipt creation later)
+            # In real implementation, create stock.picking or stock.move records
+            receipt_data = {
+                'supplier': data['supplier'],
+                'items': data['items']
+            }
+
+            return request.make_response(
+                json.dumps({'message': 'Receipt created successfully', 'data': receipt_data}),
+                headers=[('Content-Type', 'application/json')]
+            )
+        except json.JSONDecodeError:
+            return request.make_response(
+                json.dumps({'error': 'Invalid JSON'}),
+                status=400,
+                headers=[('Content-Type', 'application/json')]
+            )
+        except Exception as e:
+            return request.make_response(
+                json.dumps({'error': str(e)}),
+                status=500,
+                headers=[('Content-Type', 'application/json')]
+            )
