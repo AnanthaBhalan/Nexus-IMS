@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import StaggeredMenu from './ui/StaggeredMenu';
 import Toast from './ui/Toast';
-import { healthCheck } from './api/api';
+import { healthCheck, getProducts } from './api/api';
 import SimpleMenu from './ui/SimpleMenu';
 import { ToastProvider } from './ui/ToastContext';
 
@@ -20,6 +20,7 @@ const AppContent = () => {
 
   const [backendOnline, setBackendOnline] = React.useState(null);
   const [showToast, setShowToast] = React.useState(false);
+  const [products, setProducts] = React.useState([]);
 
   React.useEffect(() => {
     const checkBackend = async () => {
@@ -42,6 +43,24 @@ const AppContent = () => {
     checkBackend();
   }, []);
 
+  React.useEffect(() => {
+    // Load the initial hardcoded list once
+    const loadData = async () => {
+      const data = await getProducts();
+      setProducts(data);
+    };
+    loadData();
+  }, []);
+
+  // Shared function to update stock from ANY page
+  const updateStock = (productName, quantityChange) => {
+    setProducts(prev => prev.map(p => 
+      p.name === productName 
+        ? { ...p, stock_available: p.stock_available + quantityChange, lastUpdated: true } 
+        : { ...p, lastUpdated: false }
+    ));
+  };
+
   const menuItems = [
     { label: 'Dashboard', link: '/dashboard' },
     { label: 'Products', link: '/products' },
@@ -53,26 +72,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans overflow-hidden">
-      {!isLoginPage && (
-        <>
-          {/* Menu Toggle Button */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="fixed top-6 left-6 z-50 bg-white/5 border border-white/10 p-3 rounded-lg hover:bg-white/10 transition-colors md:hidden"
-          >
-            <div className="w-6 h-5 relative flex flex-col justify-center">
-              <span className={`absolute h-0.5 w-full bg-[#ccff00] transition-transform ${menuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-              <span className={`h-0.5 w-full bg-[#ccff00] transition-opacity ${menuOpen ? 'opacity-0' : ''}`}></span>
-              <span className={`absolute h-0.5 w-full bg-[#ccff00] transition-transform ${menuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
-            </div>
-          </button>
-
-          <SimpleMenu
-            items={menuItems}
-            isOpen={menuOpen}
-          />
-        </>
-      )}
+      {!isLoginPage && <SimpleMenu items={menuItems} isOpen={menuOpen} />}
 
       {showToast && backendOnline === false && (
         <Toast
@@ -83,18 +83,13 @@ const AppContent = () => {
         />
       )}
 
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/receipts" element={<Receipts />} />
-      </Routes>
-      <div className="transition-all duration-300 pl-4 md:pl-64">
+      {/* The main content area should only have ONE Routes block */}
+      <div className={`transition-all duration-300 ${!isLoginPage ? 'pl-4 md:pl-64' : ''}`}>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/receipts" element={<Receipts />} />
+          <Route path="/products" element={<Products products={products} />} />
+          <Route path="/receipts" element={<Receipts products={products} onUpdateStock={updateStock} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

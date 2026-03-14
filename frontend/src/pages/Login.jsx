@@ -5,6 +5,8 @@ import GridMotion from '../ui/GridMotion'; // Note the ../ because we are in the
 const Login = () => {
   const navigate = useNavigate();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [step, setStep] = useState('identifier'); // 'identifier' or 'otp'
+  const [otp, setOtp] = useState(['', '', '', '']); // For 4 digits
 
   // A mix of blank text nodes and some abstract tech images. 
   const gridItems = [
@@ -16,12 +18,33 @@ const Login = () => {
 
   const handleAuth = (e) => {
     e.preventDefault(); // Stop the browser from reloading the page
-    setIsAuthenticating(true);
+    setStep('otp'); // Move to OTP step
+  };
 
-    // Simulate a network request to Odoo (1.2 seconds) to look professional
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 1200);
+  const handleOtpChange = (value, index) => {
+    if (isNaN(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    // Auto-focus next box (The "Pro" touch)
+    if (value && index < 3) {
+      const nextInput = document.querySelectorAll('input')[index + 1];
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const verifyOtp = () => {
+    const code = otp.join('');
+    if (code === '1234') { // Your "Demo Secret Code"
+      setIsAuthenticating(true);
+      // Simulate a network request to Odoo (1.2 seconds) to look professional
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1200);
+    } else {
+      alert("Invalid Code. Try 1234");
+    }
   };
 
   return (
@@ -40,47 +63,96 @@ const Login = () => {
             A.
           </div>
           
-          <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome Back.</h2>
-          <p className="text-neutral-500 text-sm mb-8">Enter your credentials to access the system.</p>
-          
-          <form className="space-y-5" onSubmit={handleAuth}>
-            <div>
-              <input 
-                type="email" 
-                defaultValue="admin@nexuscore.com"
-                className="w-full bg-white/5 border border-white/10 px-5 py-3.5 rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-[#ccff00] transition-colors" 
-                placeholder="Email address"
-                required
-              />
+          {step === 'identifier' ? (
+            <>
+              <h2 className="text-3xl font-bold tracking-tight mb-2">Welcome Back.</h2>
+              <p className="text-neutral-500 text-sm mb-8">Enter your credentials to access the system.</p>
+              
+              <form className="space-y-5" onSubmit={handleAuth}>
+                <div>
+                  <input 
+                    type="email" 
+                    defaultValue="admin@nexuscore.com"
+                    className="w-full bg-white/5 border border-white/10 px-5 py-3.5 rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-[#ccff00] transition-colors" 
+                    placeholder="Email address"
+                    required
+                  />
+                </div>
+                <div>
+                  <input 
+                    type="password" 
+                    defaultValue="odoo2026"
+                    className="w-full bg-white/5 border border-white/10 px-5 py-3.5 rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-[#ccff00] transition-colors" 
+                    placeholder="Password"
+                    required
+                  />
+                </div>
+                
+                <button 
+                  type="submit"
+                  disabled={isAuthenticating}
+                  className="w-full bg-[#ccff00] text-black font-bold py-3.5 px-4 rounded-xl hover:bg-white hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                >
+                  {isAuthenticating ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Authenticating...
+                    </>
+                  ) : (
+                    'Request OTP'
+                  )}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-white">Verify Identity</h2>
+                <p className="text-neutral-400 text-sm">Code sent to your registered device</p>
+              </div>
+              
+              <div className="flex justify-center gap-4">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    maxLength={1}
+                    className="w-12 h-14 bg-white/5 border border-white/10 rounded-xl text-center text-[#ccff00] text-xl font-bold focus:border-[#ccff00] outline-none"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e.target.value, index)}
+                  />
+                ))}
+              </div>
+
+              <button 
+                onClick={verifyOtp}
+                disabled={isAuthenticating}
+                className="w-full bg-[#ccff00] text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                {isAuthenticating ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify & Enter Warehouse'
+                )}
+              </button>
+
+              <button 
+                onClick={() => setStep('identifier')}
+                className="w-full text-neutral-400 hover:text-white transition-colors text-sm"
+              >
+                ← Back to Login
+              </button>
             </div>
-            <div>
-              <input 
-                type="password" 
-                defaultValue="odoo2026"
-                className="w-full bg-white/5 border border-white/10 px-5 py-3.5 rounded-xl text-white placeholder-neutral-600 focus:outline-none focus:border-[#ccff00] transition-colors" 
-                placeholder="Password"
-                required
-              />
-            </div>
-            
-            <button 
-              type="submit"
-              disabled={isAuthenticating}
-              className="w-full bg-[#ccff00] text-black font-bold py-3.5 px-4 rounded-xl hover:bg-white hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-            >
-              {isAuthenticating ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Authenticating...
-                </>
-              ) : (
-                'Authenticate'
-              )}
-            </button>
-          </form>
+          )}
 
         </div>
       </div>

@@ -20,19 +20,15 @@ const Dashboard = () => {
         
         if (isHealthy) {
           console.log("✅ API is reachable, loading data...");
-          setKpis(await getDashboard());
+          const dashboardData = await getDashboard();
+          setKpis(dashboardData.kpis);
+          setRecentActivity(dashboardData.recent_operations);
         } else {
           console.log("⚠️ API unreachable, attempting data load anyway...");
-          setKpis(await getDashboard());
+          const dashboardData = await getDashboard();
+          setKpis(dashboardData.kpis);
+          setRecentActivity(dashboardData.recent_operations);
         }
-        
-        // TODO: Add recent activity API call when endpoint is available
-        setRecentActivity([
-          { id: 'TXN-092', type: 'Receipt', item: 'Steel Rods', qty: '+500', status: 'Done', date: 'Today, 08:42 AM' },
-          { id: 'TXN-093', type: 'Delivery', item: 'Lithium Batteries', qty: '-40', status: 'Pending', date: 'Today, 09:15 AM' },
-          { id: 'TXN-094', type: 'Transfer', item: 'Copper Wire', qty: '120', status: 'Ready', date: 'Yesterday' },
-          { id: 'TXN-095', type: 'Adjustment', item: 'Pallet Racks', qty: '-2', status: 'Done', date: 'Yesterday' },
-        ]);
       } catch (err) {
         setError(err.message);
         console.error('Failed to load dashboard data:', err);
@@ -92,10 +88,11 @@ const Dashboard = () => {
               {kpi.label}
             </h3>
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold tracking-tighter group-hover:text-[#ccff00] transition-colors">
+              <span className="text-4xl font-bold tracking-tighter group-hover:text-[#ccff00] transition-colors"
+                    style={{ color: kpi.color }}>
                 {kpi.value}
               </span>
-              {kpi.status === 'critical' && (
+              {kpi.color === '#ff4444' && (
                 <span className="text-xs font-bold text-black bg-red-500 px-2 py-1 rounded-full uppercase tracking-wider animate-pulse">
                   Action Needed
                 </span>
@@ -172,9 +169,9 @@ const Dashboard = () => {
                       {row.type}
                     </span>
                   </td>
-                  <td className="p-4 text-sm font-medium">{row.item}</td>
-                  <td className={`p-4 text-sm font-bold ${row.qty.startsWith('+') ? 'text-[#ccff00]' : row.qty.startsWith('-') ? 'text-white' : 'text-neutral-400'}`}>
-                    {row.qty}
+                  <td className="p-4 text-sm font-medium">{row.product}</td>
+                  <td className={`p-4 text-sm font-bold ${row.quantity.startsWith('+') ? 'text-[#ccff00]' : row.quantity.startsWith('-') ? 'text-white' : 'text-neutral-400'}`}>
+                    {row.quantity}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
@@ -182,7 +179,7 @@ const Dashboard = () => {
                       <span className="text-sm text-neutral-400">{row.status}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-sm text-neutral-500">{row.date}</td>
+                  <td className="p-4 text-sm text-neutral-500">{row.timestamp}</td>
                 </tr>
               ))}
             </tbody>
