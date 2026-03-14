@@ -1,0 +1,45 @@
+/* src/ui/StaggeredMenu.css - HACKED FOR DARK MODE SAAS */
+
+.staggered-menu-wrapper { position: relative; width: 100%; height: 100%; z-index: 40; pointer-events: none; }
+.staggered-menu-wrapper.fixed-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 40; overflow: hidden; }
+.staggered-menu-header { position: absolute; top: 0; right: 0; width: 100%; display: flex; align-items: center; justify-content: flex-end; padding: 2em 3em; background: transparent; pointer-events: none; z-index: 50; }
+.staggered-menu-header > * { pointer-events: auto; }
+
+/* The Menu Button */
+.sm-toggle { position: relative; display: inline-flex; align-items: center; gap: 0.8rem; background: transparent; border: none; cursor: pointer; color: #ffffff; font-weight: 600; font-size: 1.1rem; line-height: 1; overflow: visible; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; tracking: 2px;}
+.sm-toggle-textWrap { position: relative; display: inline-block; height: 1em; overflow: hidden; white-space: nowrap; }
+.sm-toggle-textInner { display: flex; flex-direction: column; line-height: 1; }
+.sm-toggle-line { display: block; height: 1em; line-height: 1; }
+.sm-icon { position: relative; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; will-change: transform; }
+.sm-icon-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%); will-change: transform; }
+
+/* THE PANEL - Changed to Pitch Black with a subtle white border */
+.staggered-menu-panel { position: absolute; top: 0; right: 0; width: clamp(320px, 40vw, 500px); height: 100%; background: #050505; border-left: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; padding: 8em 4em 4em 4em; overflow-y: auto; z-index: 10; pointer-events: auto; font-family: 'Space Grotesk', sans-serif;}
+[data-position='left'] .staggered-menu-panel { right: auto; left: 0; border-left: none; border-right: 1px solid rgba(255,255,255,0.05); }
+
+/* The Prelayers - We will pass dark hex codes to these via React props */
+.sm-prelayers { position: absolute; top: 0; right: 0; bottom: 0; width: clamp(320px, 40vw, 500px); pointer-events: none; z-index: 5; }
+[data-position='left'] .sm-prelayers { right: auto; left: 0; }
+.sm-prelayer { position: absolute; top: 0; right: 0; height: 100%; width: 100%; transform: translateX(0); border-left: 1px solid rgba(255,255,255,0.02); }
+
+.sm-panel-inner { flex: 1; display: flex; flex-direction: column; gap: 2rem; }
+
+/* The Navigation Links */
+.sm-panel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
+.sm-panel-itemWrap { position: relative; overflow: hidden; line-height: 1; }
+.sm-panel-item { position: relative; color: #ffffff; font-weight: 700; font-size: 4rem; cursor: pointer; line-height: 1.1; letter-spacing: -2px; text-transform: uppercase; transition: color 0.3s; display: inline-block; text-decoration: none; padding-right: 1.4em; }
+.sm-panel-itemLabel { display: inline-block; will-change: transform; transform-origin: 50% 100%; }
+.sm-panel-item:hover { color: var(--sm-accent, #ccff00); } /* Electric Lime Hover */
+
+/* The Numbers next to the links */
+.sm-panel-list[data-numbering] { counter-reset: smItem; }
+.sm-panel-list[data-numbering] .sm-panel-item::after { counter-increment: smItem; content: "0" counter(smItem); position: absolute; top: 0.3em; right: 0; font-size: 1.2rem; font-weight: 500; color: #555; pointer-events: none; opacity: var(--sm-num-opacity, 0); font-family: monospace; }
+
+/* Socials Section */
+.sm-socials { margin-top: auto; padding-top: 3rem; display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+.sm-socials-title { margin: 0; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #666; }
+.sm-socials-list { list-style: none; margin: 0; padding: 0; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.sm-socials-link { font-size: 1rem; font-weight: 500; color: #aaaaaa; text-decoration: none; transition: color 0.3s ease; }
+.sm-socials-link:hover { color: var(--sm-accent, #ccff00); }
+
+@media (max-width: 1024px) { .staggered-menu-panel { width: 100%; } .sm-prelayers { width: 100%; } }
