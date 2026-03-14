@@ -1,12 +1,20 @@
+import { getDashboard } from './api';
+
 // Dashboard API mocks (no real backend endpoints defined yet)
 
 export const getDashboardKPIs = async () => {
-  return [
-    { label: 'Total Products', value: '1,204', status: 'optimal' },
-    { label: 'Low Stock Alerts', value: '14', status: 'critical' },
-    { label: 'Pending Receipts', value: '8', status: 'warning' },
-    { label: 'Pending Deliveries', value: '23', status: 'optimal' },
-  ];
+  try {
+    return await getDashboard();
+  } catch (error) {
+    console.error('Real dashboard API failed, using mock:', error);
+    // Fallback to mock
+    return [
+      { label: 'Total Products', value: '1,204', status: 'optimal' },
+      { label: 'Low Stock Alerts', value: '14', status: 'critical' },
+      { label: 'Pending Receipts', value: '8', status: 'warning' },
+      { label: 'Pending Deliveries', value: '23', status: 'optimal' },
+    ];
+  }
 };
 
 export const getRecentActivity = async () => {
