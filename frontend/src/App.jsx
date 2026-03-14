@@ -1,30 +1,53 @@
-import React, { useState } from 'react';
-import DashboardLayout from './Dashboard-Layout';
-import LoginAnimated from './Login-Animated';
-import FormValidationTemplate from './Form-Validation-Template';
-import Home from './Home';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import StaggeredMenu from './ui/StaggeredMenu';
 
-function App() {
-  const [view, setView] = useState('home');
+// Page Placeholders (They will build these out next)
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
+import Receipts from './pages/Receipts';
+
+// Wrapper to conditionally hide the menu on the Login screen
+const AppContent = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/';
+
+  const menuItems = [
+    { label: 'Dashboard', link: '/dashboard' },
+    { label: 'Products', link: '/products' },
+    { label: 'Receipts', link: '/receipts' },
+    { label: 'Logout', link: '/' }
+  ];
 
   return (
-    <div className="min-h-screen bg-[#050505]">
-      {/* Dev View Toggler */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-2 flex space-x-2">
-        <button onClick={() => setView('home')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${view === 'home' ? 'bg-[#ccff00] text-black' : 'text-white hover:bg-white/10'}`}>Home</button>
-        <button onClick={() => setView('dashboard')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${view === 'dashboard' ? 'bg-[#ccff00] text-black' : 'text-white hover:bg-white/10'}`}>Dashboard</button>
-        <button onClick={() => setView('login')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${view === 'login' ? 'bg-[#ccff00] text-black' : 'text-white hover:bg-white/10'}`}>Login</button>
-        <button onClick={() => setView('form')} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${view === 'form' ? 'bg-[#ccff00] text-black' : 'text-white hover:bg-white/10'}`}>Form</button>
-      </div>
-
-      {/* Render selected template */}
-      <div className="w-full h-full">
-        {view === 'home' && <Home />}
-        {view === 'dashboard' && <DashboardLayout />}
-        {view === 'login' && <LoginAnimated />}
-        {view === 'form' && <FormValidationTemplate />}
-      </div>
+    <div className="min-h-screen bg-[#050505] text-white font-sans overflow-hidden">
+      {!isLoginPage && (
+        <StaggeredMenu
+          position="right"
+          isFixed={true}
+          items={menuItems}
+          displayItemNumbering={true}
+          accentColor="#ccff00"
+          colors={['#111111', '#0A0A0A']}
+        />
+      )}
+      
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/receipts" element={<Receipts />} />
+      </Routes>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 
