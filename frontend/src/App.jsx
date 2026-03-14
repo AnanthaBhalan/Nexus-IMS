@@ -1,5 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import StaggeredMenu from './ui/StaggeredMenu';
+import Toast from './ui/Toast';
+import { healthCheck } from './api/api';
 import SimpleMenu from './ui/SimpleMenu';
 import { ToastProvider } from './ui/ToastContext';
 
@@ -14,6 +17,30 @@ import NotFound from './pages/NotFound';
 const AppContent = () => {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
+
+  const [backendOnline, setBackendOnline] = React.useState(null);
+  const [showToast, setShowToast] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const isHealthy = await healthCheck();
+        setBackendOnline(isHealthy);
+        if (isHealthy) {
+          console.log('✅ Backend health check passed!');
+        } else {
+          console.error('❌ Backend health check failed!');
+          setShowToast(true);
+        }
+      } catch (error) {
+        console.error('❌ Backend health check failed:', error);
+        setBackendOnline(false);
+        setShowToast(true);
+      }
+    };
+
+    checkBackend();
+  }, []);
 
   const menuItems = [
     { label: 'Dashboard', link: '/dashboard' },
@@ -47,6 +74,21 @@ const AppContent = () => {
         </>
       )}
 
+      {showToast && backendOnline === false && (
+        <Toast
+          message="Backend Offline - Please check if the server is running"
+          type="error"
+          onClose={() => setShowToast(false)}
+          duration={0} // Don't auto-close error toasts
+        />
+      )}
+
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/receipts" element={<Receipts />} />
+      </Routes>
       <div className="transition-all duration-300 pl-4 md:pl-64">
         <Routes>
           <Route path="/" element={<Login />} />

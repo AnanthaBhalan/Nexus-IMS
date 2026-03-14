@@ -1,0 +1,6 @@
+{
+  "supplier": "Vendor A",
+  "items": [
+    { "sku": "STL-01", "quantity": 5 }
+  ]
+}
