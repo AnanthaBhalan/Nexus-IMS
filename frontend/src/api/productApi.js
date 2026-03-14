@@ -1,3 +1,4 @@
+import { getProducts as getRealProducts } from './api';
 import { getProducts as getMockProducts } from './mockApi';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -8,9 +9,10 @@ export const getProducts = async () => {
     return getMockProducts();
   }
 
-  const res = await fetch(`${API_BASE_URL}/api/products`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch products (${res.status})`);
+  try {
+    return await getRealProducts();
+  } catch (error) {
+    console.error('Real API failed, falling back to mock:', error);
+    return getMockProducts();
   }
-  return res.json();
 };
