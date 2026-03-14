@@ -25,9 +25,7 @@ class NexusApiController(http.Controller):
         """Get dashboard KPIs"""
         try:
             total_products = request.env['product.product'].sudo().search_count([])
-
-            low_stock_products = request.env['product.product'].sudo().search([('qty_available', '<', 10)])
-            low_stock_count = len(low_stock_products)
+            low_stock_count = request.env['product.product'].sudo().search_count([('qty_available', '<', 10)])
 
             kpis = {
                 'total_products': total_products,
@@ -35,56 +33,26 @@ class NexusApiController(http.Controller):
                 'pending_receipts': 8,
                 'pending_deliveries': 23,
             }
-
-            return request.make_response(
-                json.dumps(kpis),
-                headers=[('Content-Type', 'application/json')]
-            )
-
+            return request.make_response(json.dumps(kpis), headers=[('Content-Type', 'application/json')])
         except Exception as e:
-            return request.make_response(
-                json.dumps({'error': str(e)}),
-                status=500,
-                headers=[('Content-Type', 'application/json')]
-            )
+            return request.make_response(json.dumps({'error': str(e)}), status=500, headers=[('Content-Type', 'application/json')])
 
     @http.route('/api/products', type='http', auth='public', csrf=False, cors='*', methods=['GET'])
     def get_products(self):
-        """Get products with stock"""
         try:
             products = request.env['product.product'].sudo().search([])
-
             product_list = []
-
             for product in products:
-
-                quants = request.env['stock.quant'].sudo().search([
-                    ('product_id', '=', product.id),
-                    ('location_id.usage', '=', 'internal')
-                ])
-
-                stock_available = sum(quant.quantity for quant in quants)
-
                 product_list.append({
                     'id': product.id,
                     'name': product.name,
                     'sku': product.default_code or '',
                     'category': product.categ_id.name if product.categ_id else '',
-                    'uom': product.uom_id.name if product.uom_id else '',
-                    'stock_available': stock_available,
+                    'stock_available': product.qty_available,
                 })
-
-            return request.make_response(
-                json.dumps(product_list),
-                headers=[('Content-Type', 'application/json')]
-            )
-
+            return request.make_response(json.dumps(product_list), headers=[('Content-Type', 'application/json')])
         except Exception as e:
-            return request.make_response(
-                json.dumps({'error': str(e)}),
-                status=500,
-                headers=[('Content-Type', 'application/json')]
-            )
+            return request.make_response(json.dumps({'error': str(e)}), status=500, headers=[('Content-Type', 'application/json')])
 
     @http.route('/api/receipts', type='http', auth='public', csrf=False, cors='*', methods=['POST'])
     def create_receipt(self):

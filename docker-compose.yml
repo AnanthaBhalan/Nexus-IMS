@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=odoo
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
     volumes:
@@ -10,7 +10,7 @@ services:
     restart: always
 
   odoo:
-    image: odoo:16  # Stable version for API development
+    image: odoo:17.0
     depends_on:
       - db
     ports:
@@ -19,7 +19,8 @@ services:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons  # This links your local code to the container
     environment:
-      - HOST=db
+      - HOST=db           # MUST match the service name above
+      - PORT=5432
       - USER=odoo
       - PASSWORD=odoo
       - ADDONS_PATH=/mnt/extra-addons
